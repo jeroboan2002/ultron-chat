@@ -1,0 +1,8 @@
+extends layout.pug
+
+block content 
+    form(action="/login" method="POST")
+        div 
+            label Introduce tu nombre
+            input(type="text", name="nombre")
+        input(type="submit", value="Enviar")

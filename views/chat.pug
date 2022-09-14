@@ -1,0 +1,60 @@
+extends layout
+
+block content
+  .chat
+    header
+      h1 App Chat
+      h4
+        | Usuarios conectados:
+        span#numUsuarios
+    main
+      ul#mensajes
+        each mensaje in mensajes 
+          li #{mensaje.nombre}: #{mensaje.texto}
+    footer 
+      div 
+        label Nombre 
+        input#inputNombre(type="text", value=nombre)
+      div 
+        label Mensaje 
+        input#inputMensaje(type="text")
+      div
+        button#btnEnviar Enviar
+
+  script.
+    // Canal de comunicación entre cliente-servidor
+    const socket = io();
+
+    const inputNombre = document.getElementById('inputNombre');
+    const inputMensaje = document.getElementById('inputMensaje');
+    const btnEnviar = document.getElementById('btnEnviar');
+    const mensajes = document.getElementById('mensajes');
+    const numUsuarios = document.getElementById('numUsuarios');
+
+    btnEnviar.addEventListener('click', ()=>{
+      socket.emit('mensaje_chat', {
+        nombre: inputNombre.value,
+        mensaje: inputMensaje.value
+      });
+    });
+
+    socket.on('mensaje_chat', (data)=>{
+      const li = document.createElement('li');
+      li.innerText = `${data.nombre}: ${data.mensaje}`;
+      mensajes.appendChild(li);
+      // mensajes.prepend(li);
+
+      sendNotification(data.nombre, data.mensaje);
+    });
+
+    socket.on('usuarios_chat', (data)=>{
+      console.log('USUARIOS', data);
+      numUsuarios.innerText = data;
+    });
+
+    async function sendNotification(nombre, texto){
+      let permission = await Notification.requestPermission();
+      if(permission === 'granted'){
+        const notification = new Notification(`Mensaje de ${nombre}`, { body: texto });
+      }
+    }
